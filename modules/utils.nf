@@ -113,7 +113,7 @@ process paired_fastq_to_unmapped_bam {
         val sequencing_center
 
     output:
-        path "${readgroup_name}.unmapped.bam", emit: ubam
+        path "${sample_name}.unmapped.bam", emit: ubam
 
     script:
         """
@@ -121,7 +121,7 @@ process paired_fastq_to_unmapped_bam {
             FastqToSam \
             --FASTQ ${fastq_1} \
             --FASTQ2 ${fastq_2} \
-            --OUTPUT ${readgroup_name}.unmapped.bam \
+            --OUTPUT ${sample_name}.unmapped.bam \
             --READ_GROUP_NAME ${readgroup_name} \
             --SAMPLE_NAME ${sample_name} \
             --LIBRARY_NAME ${library_name} \
@@ -139,13 +139,6 @@ process liftover_and_combine_vcf {
     memory '10 GB'
     label 'bwa_and_picard'
 
-    // to save the final VCF and name it by the sample ID
-    publishDir (
-        path: "${params.output_dir}", 
-        mode: "copy", 
-        pattern: "*.final.*"
-    )
-
     input:
         // these are effectively aliases, or else you get name collisions since 
         // both mutect2 processes create VCFs with the same name.
@@ -159,8 +152,8 @@ process liftover_and_combine_vcf {
 
     output:
         path "${sample_name}.rejected.vcf", emit: rejected_vcf
-        path "${sample_name}.final.vcf", emit: final_vcf
-        path "${sample_name}.final.vcf.idx", emit: final_vcf_idx
+        path "${sample_name}.merged.vcf", emit: merged_vcf
+        path "${sample_name}.merged.vcf.idx", emit: merged_vcf_idx
 
     script:
         """
@@ -179,9 +172,8 @@ process liftover_and_combine_vcf {
         java -jar /usr/local/bin/picard.jar MergeVcfs \
             I=${sample_name}.shifted_back.vcf \
             I=unshifted.vcf \
-            O=${sample_name}.final.vcf
-        """
-        
+            O=${sample_name}.merged.vcf
+        """     
 }
 
 process merge_mutect_stats {

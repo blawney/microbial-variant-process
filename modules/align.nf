@@ -21,6 +21,7 @@ process align_and_mark_duplicates {
     label 'bwa_and_picard'
 
     input:
+        val sample_name
         path unmapped_bam
         path fastq_1
         path fastq_2
@@ -42,7 +43,7 @@ process align_and_mark_duplicates {
 
     script:
         bwa_version_strip = bwa_version.replaceAll(/\n/, '')
-        basename = unmapped_bam.baseName
+        basename = "${sample_name}"
         output_bam_basename = "${basename}.realigned"
         ref_fasta_base = ref_fasta.baseName
         metrics_filename = "${basename}.metrics"
@@ -107,6 +108,7 @@ process align_and_mark_duplicates {
 workflow align {
 
     take:
+        sample_name
         unmapped_bam
         fastq_1
         fastq_2
@@ -121,7 +123,9 @@ workflow align {
 
     main:
         bwa_version = get_bwa_version()
-        align_out = align_and_mark_duplicates(unmapped_bam,
+        align_out = align_and_mark_duplicates(
+                                    sample_name,
+                                    unmapped_bam,
                                     fastq_1,
                                     fastq_2,
                                     bwa_version,
@@ -142,7 +146,9 @@ workflow align {
 }
 
 workflow {
-    align(params.unmapped_bam,
+    align(
+        params.sample_name,
+        params.unmapped_bam,
         params.fastq_1,
         params.fastq_2,
         params.ref_dict,

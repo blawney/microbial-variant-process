@@ -1,4 +1,5 @@
 nextflow.enable.dsl=2
+nextflow.preview.output=true
 
 include { index_reference; 
           index_reference as index_shifted_reference; 
@@ -17,6 +18,8 @@ include { mutect2;
 
 
 workflow {
+
+    main:
 
     index_reference_output = index_reference(params.ref_fasta)
     create_faidx_output = create_faidx(params.ref_fasta)
@@ -37,7 +40,9 @@ workflow {
                                                 create_ref_dict_output.ref_dict)
     index_shifted_reference_output = index_shifted_reference(shifted_reference_output.shifted_ref_fasta)
 
-    standard_align_output = align(paired_fastq_to_unmapped_bam_output.ubam,
+    standard_align_output = align(
+        params.sample_name,
+        paired_fastq_to_unmapped_bam_output.ubam,
         params.fastq_1,
         params.fastq_2,
         create_ref_dict_output.ref_dict,
@@ -49,7 +54,9 @@ workflow {
         index_reference_output.ref_pac,
         index_reference_output.ref_sa)
 
-    shifted_align_output = shifted_align(paired_fastq_to_unmapped_bam_output.ubam,
+    shifted_align_output = shifted_align(
+        params.sample_name,
+        paired_fastq_to_unmapped_bam_output.ubam,
         params.fastq_1,
         params.fastq_2,
         shifted_reference_output.shifted_ref_dict,
@@ -61,7 +68,8 @@ workflow {
         index_shifted_reference_output.ref_pac,
         index_shifted_reference_output.ref_sa)
 
-    mutect2_output = mutect2(standard_align_output.bam,
+    mutect2_output = mutect2(params.sample_name,
+        standard_align_output.bam,
         standard_align_output.bam_idx,
         params.ref_fasta,
         create_faidx_output.ref_faidx,
@@ -70,7 +78,8 @@ workflow {
         params.num_dangling_bases,
         params.make_output_bam)
 
-    shifted_mutect2_output = shifted_mutect2(shifted_align_output.bam,
+    shifted_mutect2_output = shifted_mutect2(params.sample_name,
+        shifted_align_output.bam,
         shifted_align_output.bam_idx,
         shifted_reference_output.shifted_ref_fasta,
         shifted_reference_output.shifted_ref_faidx,
@@ -106,9 +115,46 @@ workflow {
         params.ref_fasta,
         create_faidx_output.ref_faidx,
         create_ref_dict_output.ref_dict,
-        liftover_and_combine_vcf_output.final_vcf,
-        liftover_and_combine_vcf_output.final_vcf_idx,
+        liftover_and_combine_vcf_output.merged_vcf,
+        liftover_and_combine_vcf_output.merged_vcf_idx,
         merge_mutect_stats_output.stats
     )
+
+    publish:
+    merged_vcf = liftover_and_combine_vcf_output.merged_vcf
+    merged_vcf_idx = liftover_and_combine_vcf_output.merged_vcf_idx
+    final_vcf = filter_output.filtered_vcf
+    final_vcf_idx = filter_output.filtered_vcf_idx
+    orig_bam = standard_align_output.bam
+    orig_bam_idx = standard_align_output.bam_idx
+    mutect_bam = mutect2_output.output_bam
+    mutect_bam_idx = mutect2_output.output_bam_idx
     
+}
+
+output {
+    merged_vcf {
+        path 'unfiltered_vcf_output'
+    }
+    merged_vcf_idx {
+        path 'unfiltered_vcf_output'
+    }
+    final_vcf {
+        path 'filtered_vcf_output'
+    }
+    final_vcf_idx {
+        path 'filtered_vcf_output'
+    }
+    orig_bam {
+        path 'original_bams'
+    }
+    orig_bam_idx {
+        path 'original_bams'
+    }
+    mutect_bam {
+        path 'mutect2_bams'
+    }
+    mutect_bam_idx {
+        path 'mutect2_bams'
+    }
 }

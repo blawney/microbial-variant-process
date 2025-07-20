@@ -7,6 +7,7 @@ process run_mutect2 {
     label 'gatk'
 
     input:
+        val sample_name
         path input_bam
         path input_bai
         path ref_fasta
@@ -20,11 +21,12 @@ process run_mutect2 {
         path "${output_vcf}", emit: raw_vcf
         path "${output_vcf}.idx", emit: raw_vcf_idx
         path "${output_vcf}.stats", emit: vcf_stats
-        path "output.bam", emit: bam_out
+        path "${sample_name}.bam", emit: bam_out
+        path "${sample_name}.bai", emit: bai_out
 
     script:
         output_vcf = "raw.vcf"
-        bam_out_cmd = make_output_bam == true ? "--bam-output output.bam" : ""
+        bam_out_cmd = make_output_bam == true ? "--bam-output ${sample_name}.bam" : ""
         """
         # File needs to exist, even if empty
         touch output.bam
@@ -44,6 +46,7 @@ process run_mutect2 {
 workflow mutect2 {
 
     take:
+      sample_name
       input_bam
       input_bai
       ref_fasta
@@ -54,7 +57,9 @@ workflow mutect2 {
       make_output_bam
 
     main:
-        mutect_output = run_mutect2(input_bam,
+        mutect_output = run_mutect2(
+                sample_name,
+                input_bam,
                 input_bai,
                 ref_fasta,
                 ref_faidx,                                                                      
@@ -68,12 +73,14 @@ workflow mutect2 {
         raw_vcf_idx = mutect_output.raw_vcf_idx
         vcf_stats = mutect_output.vcf_stats
         output_bam = mutect_output.bam_out
+        output_bam_idx = mutect_output.bai_out
 }
 
 
 workflow {
 
-    mutect2(params.input_bam,
+    mutect2(params.sample_name,
+            params.input_bam,
             params.input_bai,
             params.ref_fasta,
             params.ref_faidx,
