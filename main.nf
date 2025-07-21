@@ -17,7 +17,7 @@ include { mutect2;
           mutect2 as shifted_mutect2} from './modules/mutect.nf'
 
 
-workflow {
+workflow process_single_sample {
 
     main:
 
@@ -120,7 +120,7 @@ workflow {
         merge_mutect_stats_output.stats
     )
 
-    publish:
+    emit:
     merged_vcf = liftover_and_combine_vcf_output.merged_vcf
     merged_vcf_idx = liftover_and_combine_vcf_output.merged_vcf_idx
     final_vcf = filter_output.filtered_vcf
@@ -130,6 +130,23 @@ workflow {
     mutect_bam = mutect2_output.output_bam
     mutect_bam_idx = mutect2_output.output_bam_idx
     
+}
+
+
+workflow {
+
+    outputs = process_single_sample()
+
+    publish:
+    merged_vcf = outputs.merged_vcf
+    merged_vcf_idx = outputs.merged_vcf_idx
+    final_vcf = outputs.final_vcf
+    final_vcf_idx = outputs.final_vcf_idx
+    orig_bam = outputs.orig_bam
+    orig_bam_idx = outputs.orig_bam_idx
+    mutect_bam = outputs.mutect_bam
+    mutect_bam_idx = outputs.mutect_bam_idx
+
 }
 
 output {

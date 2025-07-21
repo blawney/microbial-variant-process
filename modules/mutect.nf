@@ -21,12 +21,12 @@ process run_mutect2 {
         path "${output_vcf}", emit: raw_vcf
         path "${output_vcf}.idx", emit: raw_vcf_idx
         path "${output_vcf}.stats", emit: vcf_stats
-        path "${sample_name}.bam", emit: bam_out
-        path "${sample_name}.bai", emit: bai_out
+        path "${sample_name}.mutect2.bam", emit: bam_out
+        path "${sample_name}.mutect2.bai", emit: bai_out
 
     script:
         output_vcf = "raw.vcf"
-        bam_out_cmd = make_output_bam == true ? "--bam-output ${sample_name}.bam" : ""
+        bam_out_cmd = make_output_bam == true ? "--bam-output ${sample_name}.mutect2.bam" : ""
         """
         # File needs to exist, even if empty
         touch output.bam
