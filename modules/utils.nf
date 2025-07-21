@@ -105,17 +105,18 @@ process paired_fastq_to_unmapped_bam {
         val sample_name
         path fastq_1
         path fastq_2
-        val readgroup_name
-        val library_name
-        val platform_unit
-        val run_date
-        val platform_name
-        val sequencing_center
+        val sequencing_metadata
 
     output:
         path "${sample_name}.unmapped.bam", emit: ubam
 
     script:
+        sequencing_center = sequencing_metadata["sequencing_center"]
+        readgroup_name = sequencing_metadata["readgroup_name"]
+        library_name = sequencing_metadata["library_name"]
+        platform_unit = sequencing_metadata["platform_unit"]
+        platform_name = sequencing_metadata["platform_name"]
+        run_date = sequencing_metadata["run_date"]
         """
         /gatk/gatk --java-options "-Xmx10g" \
             FastqToSam \

@@ -24,12 +24,7 @@ workflow process_single_sample {
         sample_name
         fastq_1
         fastq_2
-        readgroup_name
-        library_name
-        platform_unit
-        platform_name
-        run_date
-        sequencing_center
+        sequencing_metadata
         num_dangling_bases
         make_output_bam
 
@@ -42,12 +37,7 @@ workflow process_single_sample {
         paired_fastq_to_unmapped_bam_output = paired_fastq_to_unmapped_bam(sample_name, 
                                                                            fastq_1,
                                                                            fastq_2,
-                                                                           readgroup_name,
-                                                                           library_name,
-                                                                           platform_unit,
-                                                                           run_date,
-                                                                           platform_name,
-                                                                           sequencing_center)
+                                                                           sequencing_metadata)
 
         shifted_reference_output = shift_reference(ref_fasta, 
                                                    create_faidx_output.ref_faidx, 
@@ -155,12 +145,7 @@ workflow {
                                         params.sample_name, 
                                         params.fastq_1, 
                                         params.fastq_2, 
-                                        params.readgroup_name, 
-                                        params.library_name,
-                                        params.platform_unit,
-                                        params.platform_name,
-                                        params.run_date,
-                                        params.sequencing_center,
+                                        params.sequencing_metadata,
                                         params.num_dangling_bases,
                                         params.make_output_bam)
 

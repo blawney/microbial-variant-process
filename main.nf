@@ -9,18 +9,30 @@ workflow {
     main:
         sample_metadata = Channel.fromPath(params.samplesheet)
                                  .splitCsv(header: true)
+                                 .map{ row ->
+                                    meta = [
+                                        readgroup_name: row.readgroup_name,
+                                        library_name: row.library_name,
+                                        platform_unit: row.platform_unit,
+                                        platform_name: row.platform_name,
+                                        sequencing_center: row.sequencing_center,
+                                        run_date: row.run_date
+                                    ]
+                                    [
+                                        ref_fasta: row.ref_fasta, 
+                                        sample_name: row.sample_name,
+                                        fastq_1: row.fastq_1,
+                                        fastq_2: row.fastq_2,
+                                        sequencing_metadata: meta
+                                    ]
+                                 }
 
         outputs = process_single_sample(
             sample_metadata.map{it['ref_fasta']}, 
             sample_metadata.map{it['sample_name']}, 
             sample_metadata.map{it['fastq_1']},
             sample_metadata.map{it['fastq_2']},
-            sample_metadata.map{it['readgroup_name']},
-            sample_metadata.map{it['library_name']},
-            sample_metadata.map{it['platform_unit']},
-            sample_metadata.map{it['platform_name']},
-            sample_metadata.map{it['run_date']},
-            sample_metadata.map{it['sequencing_center']},
+            sample_metadata.map{it['sequencing_metadata']},
             params.num_dangling_bases,
             params.make_output_bam
         )
