@@ -179,6 +179,14 @@ process align_and_mark_duplicates {
 workflow align {
 
     take:
+        // note that sample_metadata looks like:
+        // sample_name,
+        // fastq_1,
+        // fastq_2,
+        // ref_fasta,
+        // ref_dict,
+        // faidx,
+        // meta (a dictionary)
         sample_metadata
 
     main:
