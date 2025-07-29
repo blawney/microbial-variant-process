@@ -13,6 +13,10 @@ include { align;
 include { mutect2; 
           mutect2 as shifted_mutect2} from './subworkflows/mutect.nf'
 
+import java.time.*
+Date now = new Date()
+params.timestamp = now.format("yyyyMMdd-HH-mm-ss")
+
 
 workflow {
 
@@ -203,18 +207,18 @@ workflow {
 
 output {
     final_vcf {
-        path 'filtered_vcf_output'
+        path "${params.timestamp}/filtered_vcf_output"
     }
     final_vcf_idx {
-        path 'filtered_vcf_output'
+        path "${params.timestamp}/filtered_vcf_output"
     }
     liftover {
-        path 'liftover_and_combine'
+        path "${params.timestamp}/liftover_and_combine"
     }
     bams {
-        path 'bam_files'
+        path "${params.timestamp}/bam_files"
     }
     bam_idxs {
-        path 'bam_files'
+        path "${params.timestamp}/bam_files"
     }
 }
